@@ -7,7 +7,7 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 
-from handlers import user
+from handlers import admin, user
 
 
 load_dotenv()
@@ -15,7 +15,7 @@ TOKEN = os.getenv("BOT_TOKEN")
 
 
 def register_routers(dp: Dispatcher):
-    dp.include_router(user.user_router)
+    dp.include_routers(admin.admin_router, user.user_router)
 
 
 async def main():

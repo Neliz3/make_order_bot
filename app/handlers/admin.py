@@ -6,11 +6,25 @@ from aiogram import Router
 admin_router = Router()
 
 
-@admin_router.message(Command('statistic'))
+#   Enter in role of an admin
+@admin_router.message(Command('_admin'))
 async def command_start_handler(message: Message):
-    await message.answer("statistic")
+    await message.answer("admin")
 
 
-@admin_router.message(Command('orders'))
+#   See statistics
+@admin_router.message(Command('_statistics'))
+async def command_start_handler(message: Message):
+    await message.answer("statistics")
+
+
+#   See orders
+@admin_router.message(Command('_orders'))
 async def command_start_handler(message: Message):
     await message.answer("orders")
+
+
+#   See, Edit, Add, Del products
+@admin_router.message(Command('_products'))
+async def command_start_handler(message: Message):
+    await message.answer("products")
