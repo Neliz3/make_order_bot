@@ -2,7 +2,7 @@ from aiogram.types import Message
 from aiogram.utils.markdown import hbold
 from aiogram.filters import Command
 from aiogram import Router
-
+from app import keyboards as key
 
 user_router = Router()
 
@@ -22,13 +22,13 @@ async def command_start_handler(message: Message):
 #   See products, Add to cart, Choose amount
 @user_router.message(Command('products'))
 async def command_start_handler(message: Message):
-    await message.answer("products")
+    await message.answer("products",  reply_markup=key.inline.builder.as_markup())
 
 
 #   Send instruction
 @user_router.message(Command('help'))
 async def command_start_handler(message: Message):
-    await message.answer("products")
+    await message.answer("Help")
 
 
 #   Unrecognized messages

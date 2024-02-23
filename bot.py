@@ -7,15 +7,15 @@ from dotenv import load_dotenv
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 
-from handlers import admin, user
-
+from app.handlers import admin, user, utils
+from app.keyboards import commands
 
 load_dotenv()
 TOKEN = os.getenv("BOT_TOKEN")
 
 
-def register_routers(dp: Dispatcher):
-    dp.include_routers(admin.admin_router, user.user_router)
+def register_routers(dp):
+    dp.include_routers(admin.admin_router, user.user_router, utils.callback_router)
 
 
 async def main():
@@ -24,6 +24,7 @@ async def main():
 
     register_routers(dp)
 
+    await bot.set_my_commands(commands.commands)
     await dp.start_polling(bot)
 
 

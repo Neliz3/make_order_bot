@@ -1,2 +1,2 @@
+from . import keyboards
 from . import handlers
-from . import app
