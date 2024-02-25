@@ -42,10 +42,9 @@ if __name__ == "__main__":
     asyncio.run(main())
 
 
-# TODO: middleware for database
 # TODO: imports (load_env or conf file)
 # TODO: create different Schema
 # TODO: what is update?
 # TODO: all functions (admin too)
-#   TODO: add user_id into table
+# TODO: add user_id into table
 # TODO: optimize import
