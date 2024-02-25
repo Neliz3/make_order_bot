@@ -1,20 +1,17 @@
 import asyncio
 import logging
 import sys
-import os
-from dotenv import load_dotenv
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
 
 from app.handlers import admin, user, callbacks
 from app.keyboards import commands
+from app.db.engine import create_db, drop_db, engine
 
-from app.db.engine import create_db, drop_db
+from conf import TOKEN
 
 
-load_dotenv()
-TOKEN = os.getenv("BOT_TOKEN")
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
@@ -31,20 +28,26 @@ async def on_startup():
     await create_db()
 
 
+async def on_shutdown():
+    #   message to admin about shutdown of a bot
+    await engine.dispose()
+
+
 async def main():
 
     dp.startup.register(on_startup)
+    dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)
 
 
 if __name__ == "__main__":
-    logging.basicConfig(level=logging.INFO, stream=sys.stdout)
+    logging.basicConfig(stream=sys.stdout)
+    logging.getLogger("aiogram").setLevel(logging.INFO)
+    logging.getLogger("sqlalchemy").setLevel(logging.INFO)
     asyncio.run(main())
 
 
-# TODO: imports (load_env or conf file)
 # TODO: create different Schema
-# TODO: what is update?
 # TODO: all functions (admin too)
 # TODO: add user_id into table
 # TODO: optimize import

@@ -8,7 +8,7 @@ from app.db import engine
 
 #   Fixture for session in db
 @dp.update.outer_middleware()
-async def database_pool_middleware(
+async def database_session_middleware(
     handler: Callable[[Update, Dict[str, Any]], Awaitable[Any]],
     event: Update,
     data: Dict[str, Any]

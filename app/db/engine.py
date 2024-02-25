@@ -1,25 +1,11 @@
 from sqlalchemy.orm import declarative_base
 from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.pool import AsyncAdaptedQueuePool
 
-from dotenv import load_dotenv
-import os
-
-
-load_dotenv()
-
-
-#   Connecting db
-DB = os.getenv("DB")
-USER = os.getenv("USER")
-HOST = os.getenv("HOST")
-PASSWD = os.getenv("PASSWD")
-DB_NAME = os.getenv("DB_NAME")
-PORT = os.getenv("PORT")
-
-url = f'{DB}://{USER}:{PASSWD}@{HOST}:{PORT}/{DB_NAME}'
+from conf import url
 
 Base = declarative_base()
-engine = create_async_engine(url, echo=True)
+engine = create_async_engine(url, echo=True, poolclass=AsyncAdaptedQueuePool, pool_size=200, max_overflow=10)
 session_maker = async_sessionmaker(bind=engine, class_=AsyncSession, expire_on_commit=False)
 
 

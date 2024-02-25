@@ -3,7 +3,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from .models import Users
 
-
 """ CRUD For Users """
 
 
