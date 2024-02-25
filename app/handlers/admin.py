@@ -2,8 +2,12 @@ from aiogram.types import Message
 from aiogram.filters import Command
 from aiogram import Router
 
+from app.db.engine import session_maker
+
+from app.db.queries import list_users
 
 admin_router = Router()
+# admin_router.message.filter(ChatTypeFilter(["private"]), IsAdmin())
 
 
 #   Enter in role of an admin
@@ -15,7 +19,9 @@ async def command_start_handler(message: Message):
 #   See statistics
 @admin_router.message(Command('_statistics'))
 async def command_start_handler(message: Message):
-    await message.answer("statistics")
+    result = await list_users(session_maker())
+    for user in result:
+        await message.answer(f"{user.first_name}")
 
 
 #   See orders
@@ -24,7 +30,7 @@ async def command_start_handler(message: Message):
     await message.answer("orders")
 
 
-#   See, Edit, Add, Del products
+#   See, Edit, Add, Delete products
 @admin_router.message(Command('_products'))
 async def command_start_handler(message: Message):
     await message.answer("products")

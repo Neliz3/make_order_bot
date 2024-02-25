@@ -36,3 +36,9 @@ pip install -U aiogram
 ```bash
 pip install python-dotenv
 ```
+```bash
+pip install SQLAlchemy
+```
+```bash
+sudo apt-get -y install postgresql
+```
