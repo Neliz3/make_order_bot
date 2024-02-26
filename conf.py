@@ -18,3 +18,7 @@ DB_NAME = os.getenv("DB_NAME")
 PORT = os.getenv("PORT")
 
 url = f'{DB}://{USER}:{PASSWD}@{HOST}:{PORT}/{DB_NAME}'
+
+
+# Admin id
+ADMIN = os.getenv("ADMIN")

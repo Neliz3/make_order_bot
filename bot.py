@@ -50,4 +50,3 @@ if __name__ == "__main__":
 # TODO: create different Schema
 # TODO: all functions (admin too)
 # TODO: add user_id into table
-# TODO: optimize import
