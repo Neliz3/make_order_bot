@@ -7,8 +7,8 @@ from .models import Users
 
 
 #   Add User
-async def add_user(session: AsyncSession, first_name, last_name, address, phone):
-    session.add(Users(first_name=first_name, last_name=last_name, address=address, phone=phone))
+async def add_user(session: AsyncSession, tg_id, first_name, last_name, address, phone):
+    session.add(Users(tg_id=tg_id, first_name=first_name, last_name=last_name, address=address, phone=phone))
     await session.commit()
 
 

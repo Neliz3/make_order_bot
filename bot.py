@@ -17,6 +17,7 @@ bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
 
 async def register_routers():
+    dp.message.register(user.Registration)
     dp.include_routers(admin.admin_router, user.user_router, callbacks.callback_router)
 
 
@@ -34,7 +35,6 @@ async def on_shutdown():
 
 
 async def main():
-
     dp.startup.register(on_startup)
     dp.shutdown.register(on_shutdown)
     await dp.start_polling(bot)
@@ -45,8 +45,3 @@ if __name__ == "__main__":
     logging.getLogger("aiogram").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy").setLevel(logging.INFO)
     asyncio.run(main())
-
-
-# TODO: create different Schema
-# TODO: all functions (admin too)
-# TODO: add user_id into table
