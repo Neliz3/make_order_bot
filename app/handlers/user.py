@@ -61,8 +61,6 @@ async def process_phone(message: Message, state: FSMContext, session: AsyncSessi
     await add_to_database(message, data, session=session)
 
 
-#   TODO: Middleware does not see session
-
 async def add_to_database(message: Message, data: Dict[str, Any], session):
     first_name = data["first_name"]
     last_name = data["last_name"]

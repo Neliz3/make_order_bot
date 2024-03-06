@@ -1,8 +1,9 @@
 from sqlalchemy.orm import declarative_base
-from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker
+from sqlalchemy.ext.asyncio import AsyncSession, create_async_engine, async_sessionmaker, AsyncEngine
 from sqlalchemy.pool import AsyncAdaptedQueuePool
 
 from conf import url
+
 
 Base = declarative_base()
 engine = create_async_engine(url, echo=True, poolclass=AsyncAdaptedQueuePool, pool_size=200, max_overflow=10)
