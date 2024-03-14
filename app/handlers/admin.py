@@ -2,7 +2,7 @@ from aiogram.types import Message, ReplyKeyboardRemove
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.utils.markdown import hstrikethrough
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -12,21 +12,23 @@ from prettytable import PrettyTable
 from typing import Dict, Any
 
 from app.filters import admin
-from app.keyboards.keyboard import keyboard_approve
+from app.keyboards.keyboard import keyboard_approve, keyboard_edit_del_product
+from app.keyboards import commands
 
 from app.db.queries import (list_users,
                             add_product, list_carts, list_products, get_product, get_cart,
-                            update_cart, delete_cart)
-import bot
+                            update_cart, delete_cart, delete_product, update_product)
 
 admin_router = Router()
 admin_router.message.filter(admin.IsAdmin())
 
 
-#   Enter in role of an admin
-@admin_router.message(Command('admin_'))
-async def admin_cmd(message: Message):
-    await message.answer("admin")
+@admin_router.message(Command('admin_set'))
+async def admin_cmd(message: Message, bot: Bot):
+    # await bot.delete_my_commands()
+    await bot.set_my_commands(commands.admin_commands)
+
+    await message.answer(f"Admin mode was set up.")
 
 
 @admin_router.message(Command("cancel"))
@@ -138,7 +140,7 @@ async def products_cmd(message: Message, session: AsyncSession):
 
     text = f'`{table.get_string()}`'
 
-    await message.answer(text, parse_mode='Markdown')
+    await message.answer(text, parse_mode='Markdown', reply_markup=await keyboard_edit_del_product())
 
 
 #   See, Edit, Add, Delete products
@@ -155,21 +157,21 @@ async def products_cmd(message: Message, state: FSMContext):
 
 
 @admin_router.message(ProductsAdd.title)
-async def process_first_name(message: Message, state: FSMContext) -> None:
+async def product_process_price(message: Message, state: FSMContext) -> None:
     await state.update_data(title=message.text)
     await state.set_state(ProductsAdd.price)
     await message.answer("Enter a product price")
 
 
 @admin_router.message(ProductsAdd.price)
-async def process_last_name(message: Message, state: FSMContext) -> None:
+async def product_process_amount(message: Message, state: FSMContext) -> None:
     await state.update_data(price=message.text)
     await state.set_state(ProductsAdd.amount)
     await message.answer("Enter a product amount")
 
 
 @admin_router.message(ProductsAdd.amount)
-async def process_phone(message: Message, state: FSMContext, session: AsyncSession):
+async def product_process_end(message: Message, state: FSMContext, session: AsyncSession):
     await state.update_data(amount=message.text)
 
     data = await state.get_data()
@@ -191,9 +193,77 @@ async def add_to_database(message: Message, data: Dict[str, Any], session):
     answer = f"{title} {price} ({amount}) was added"
     await message.answer(text=answer)
 
-# TODO: delete products
-# TODO: edit amount of product
+
 # TODO: apply keyboard to admin
 # TODO: indexing
 # TODO: statistics (amount of users, orders)
 # TODO: list approved orders
+
+
+class Delete(StatesGroup):
+    product_id = State()
+
+
+@admin_router.message(F.text == "Delete Product")
+async def delete_process(message: Message, session: AsyncSession, state: FSMContext):
+    await state.set_state(Delete.product_id)
+    await message.answer('Please, enter a number #', parse_mode='Markdown', reply_markup=ReplyKeyboardRemove())
+
+
+@admin_router.message(Delete.product_id)
+async def delete_product_end(message: Message, session: AsyncSession, state: FSMContext):
+    await state.update_data(product_id=message.text)
+    data = await state.get_data()
+    try:
+        await delete_product(session, int(data['product_id']))
+        await state.clear()
+        await message.answer('Product was deleted.')
+    except ():
+        await message.answer('Error occurred. Try again.')
+
+
+class Edit(StatesGroup):
+    product_id = State()
+    title = State()
+    amount = State()
+    price = State()
+
+
+@admin_router.message(F.text == "Edit Product")
+async def edit_process(message: Message, session: AsyncSession, state: FSMContext):
+    await state.set_state(Edit.product_id)
+    await message.answer('Please, enter a number #', reply_markup=ReplyKeyboardRemove())
+
+
+@admin_router.message(Edit.product_id)
+async def edit_process_id(message: Message, state: FSMContext):
+    await state.update_data(product_id=message.text)
+    await state.set_state(Edit.title)
+    await message.answer('Please, enter a title.')
+
+
+@admin_router.message(Edit.title)
+async def edit_process_title(message: Message, state: FSMContext):
+    await state.update_data(title=message.text)
+    await state.set_state(Edit.amount)
+    await message.answer('Please, enter an amount.')
+
+
+@admin_router.message(Edit.amount)
+async def edit_process_amount(message: Message, state: FSMContext):
+    await state.update_data(amount=message.text)
+    await state.set_state(Edit.price)
+    await message.answer('Please, enter a price.')
+
+
+@admin_router.message(Edit.price)
+async def edit_process_price(message: Message, state: FSMContext, session: AsyncSession):
+    await state.update_data(price=message.text)
+    data = await state.get_data()
+    product_id = int(data['product_id'])
+    title = data['title']
+    amount = int(data['amount'])
+    price = int(data['price'])
+
+    await update_product(session, product_id, title, price, amount)
+    await message.answer(f'Product {product_id} was edited. /_products')

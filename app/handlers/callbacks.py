@@ -126,6 +126,3 @@ async def add_to_cart(message: Message, session: AsyncSession, state: FSMContext
     await message.answer(text, parse_mode='Markdown')
     await state.clear()
     await message.answer('Product successfully added to /cart.', reply_markup=ReplyKeyboardRemove())
-
-
-# TODO: edit delete cart / product / approve a cart

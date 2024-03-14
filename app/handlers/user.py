@@ -111,8 +111,6 @@ async def products_command(message: Message, session: AsyncSession):
 
 @user_router.message(Command('cart'))
 async def cart_command(message: Message, session: AsyncSession):
-    ### TODO: indexing of a database
-
     id_user = message.from_user.id
 
     result = await get_carts_by_user(session, id_user)

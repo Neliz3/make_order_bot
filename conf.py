@@ -22,3 +22,4 @@ url = f'{DB}://{USER}:{PASSWD}@{HOST}:{PORT}/{DB_NAME}'
 
 # Admin id
 ADMIN = os.getenv("ADMIN")
+CHAT_ID = os.getenv("CHAT_ID")
