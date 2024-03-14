@@ -20,7 +20,7 @@ bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 
 
 async def register_routers():
-    dp.include_routers(admin.admin_router, user.user_router, callbacks.callback_router)
+    dp.include_routers(admin.admin_router, callbacks.callback_router, user.user_router)
 
 
 async def on_startup():

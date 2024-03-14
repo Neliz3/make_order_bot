@@ -1,4 +1,5 @@
-from sqlalchemy import Column, Integer, String, Boolean
+from sqlalchemy import Column, Integer, String, Boolean, ForeignKey
+from sqlalchemy.orm import relationship
 from .engine import Base
 
 
@@ -12,6 +13,9 @@ class Users(Base):
     address = Column(String)
     phone = Column(String)
 
+    # Relationships
+    cart = relationship("Carts")
+
 
 class Products(Base):
     __tablename__ = "products"
@@ -21,12 +25,17 @@ class Products(Base):
     price = Column(Integer, default=0)
     amount = Column(Integer, default=0)
 
+    # Relationships
+    cart = relationship("Carts")
+
 
 class Carts(Base):
     __tablename__ = "carts"
 
     id = Column(Integer, primary_key=True, unique=True, autoincrement=True)
-    id_user = Column(Integer)
-    id_product = Column(Integer)
+    id_user = Column(Integer, ForeignKey('users.tg_id'))
+    id_product = Column(Integer, ForeignKey('products.id'))
     amount = Column(Integer, default=0)
     approval = Column(Boolean, default=False)
+    
+    user = relationship("Users")
