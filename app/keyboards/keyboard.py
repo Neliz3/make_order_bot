@@ -12,7 +12,7 @@ class QueryCallback(CallbackData, prefix="query"):
     value: int
 
 
-async def keyboard_products(session: AsyncSession):
+async def keyboard_choose_product(session: AsyncSession):
     builder = InlineKeyboardBuilder()
 
     numbers = await list_products(session)
@@ -29,7 +29,7 @@ async def keyboard_products(session: AsyncSession):
     return builder.as_markup()
 
 
-async def keyboard_cart():
+async def keyboard_to_cart():
     builder = ReplyKeyboardBuilder()
 
     builder.add(KeyboardButton(text='Amount'),
@@ -40,14 +40,14 @@ async def keyboard_cart():
     return builder.adjust(2).as_markup()
 
 
-async def keyboard_amount(session: AsyncSession, id_product):
+async def keyboard_choose_amount(session: AsyncSession, id_product, action):
     builder = InlineKeyboardBuilder()
 
     product = await get_product(session, id_product)
 
     buttons = (InlineKeyboardButton(
-        text=f'{i}',
-        callback_data=QueryCallback(action="amount", value=i).pack()) for i in range(product.amount))
+        text=f'{i + 1}',
+        callback_data=QueryCallback(action=action, value=i+1).pack()) for i in range(product.amount))
 
     row = builder.row()
 
@@ -57,3 +57,26 @@ async def keyboard_amount(session: AsyncSession, id_product):
     builder.adjust().as_markup().resize_keyboard = True
 
     return builder.as_markup()
+
+
+async def keyboard_edit_del():
+    builder = ReplyKeyboardBuilder()
+
+    builder.add(KeyboardButton(text='Edit'),
+                KeyboardButton(text='Delete'))
+
+    builder.adjust().as_markup().resize_keyboard = True
+
+    return builder.adjust(2).as_markup()
+
+
+async def keyboard_approve():
+    builder = ReplyKeyboardBuilder()
+
+    builder.add(KeyboardButton(text='Approve'),
+                KeyboardButton(text='Approve All'),
+                KeyboardButton(text='Reject'))
+
+    builder.adjust().as_markup().resize_keyboard = True
+
+    return builder.adjust(2).as_markup()

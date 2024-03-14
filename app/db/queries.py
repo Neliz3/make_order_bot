@@ -98,18 +98,31 @@ async def list_carts(session: AsyncSession):
     return result.scalars().all()
 
 
-#   Get particular Product
-async def get_cart(session: AsyncSession, id_user):
+#   Get particular Carts
+async def get_carts_by_user(session: AsyncSession, id_user):
     query = select(Carts).where(Carts.id_user == id_user)
     result = await session.execute(query)
     return result.scalars().all()
 
 
-#   Update Product
-async def update_cart(session: AsyncSession, id_, id_product, amount, approval):
+#   Get particular Cart by product and user
+async def get_cart_by_product(session: AsyncSession, id_user, id_product):
+    query = select(Carts).where(Carts.id_user == id_user).where(Carts.id_product == id_product)
+    result = await session.execute(query)
+    return result.scalar()
+
+
+#   Get particular Cart
+async def get_cart(session: AsyncSession, id_cart):
+    query = select(Carts).where(Carts.id == id_cart)
+    result = await session.execute(query)
+    return result.scalar()
+
+
+#   Update Cart
+async def update_cart(session: AsyncSession, id_, amount, approval):
     query = (
-        update(Carts).where(Carts.id == id_).
-        values(id_product=id_product).values(amount=amount).values(approval=approval))
+        update(Carts).where(Carts.id == id_).values(amount=amount).values(approval=approval))
     await session.execute(query)
     await session.commit()
 

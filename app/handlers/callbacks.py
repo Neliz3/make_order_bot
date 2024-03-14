@@ -9,8 +9,11 @@ from aiogram.fsm.state import StatesGroup, State
 
 from prettytable import PrettyTable
 
-from app.keyboards.keyboard import QueryCallback, keyboard_cart, keyboard_amount
-from app.db.queries import add_cart, get_user, get_product, get_cart
+from app.keyboards.keyboard import (QueryCallback,
+                                    keyboard_to_cart,
+                                    keyboard_choose_amount)
+
+from app.db.queries import add_cart, get_product, get_cart, update_cart, get_cart_by_product
 
 callback_router = Router()
 
@@ -43,7 +46,7 @@ async def cart(query: CallbackQuery, callback_data: QueryCallback, session: Asyn
 
     await query.message.edit_text(text, parse_mode='Markdown')
     await query.message.answer(text='Enter /products to choose another product',
-                               reply_markup=await keyboard_cart(),
+                               reply_markup=await keyboard_to_cart(),
                                parse_mode='Markdown')
 
 
@@ -52,8 +55,8 @@ async def ask_amount(message: Message, session: AsyncSession, state: FSMContext)
     data = await state.get_data()
     product_id = data['product_id']
 
-    await message.answer('Enter an amount', reply_markup=await keyboard_amount(session,
-                                                                               id_product=product_id))
+    await message.answer('Enter an amount',
+                         reply_markup=await keyboard_choose_amount(session, id_product=product_id, action='amount'))
 
 
 @callback_router.callback_query(QueryCallback.filter(F.action == "amount"))
@@ -68,10 +71,10 @@ async def process_amount(query: CallbackQuery, callback_data: QueryCallback, ses
     await state.update_data(amount=amount)
 
     await add_cart(session=session,
-                   id_user=id_user,
-                   id_product=product_id,
-                   amount=amount,
-                   approval=False)
+                       id_user=id_user,
+                       id_product=product_id,
+                       amount=amount,
+                       approval=False)
 
     table = PrettyTable()
 
