@@ -17,7 +17,8 @@ from app.keyboards import commands
 
 from app.db.queries import (list_users,
                             add_product, list_carts, list_products, get_product, get_cart,
-                            update_cart, delete_cart, delete_product, update_product)
+                            update_cart, delete_cart, delete_product, update_product,
+                            get_carts_approved)
 
 admin_router = Router()
 admin_router.message.filter((admin.IsAdmin()) and (chat.ChatFilter()))
@@ -37,15 +38,29 @@ async def cancel_handler(message: Message, state: FSMContext) -> None:
 
 
 #   See statistics
-@admin_router.message(Command('statistics_'))
+@admin_router.message(Command('statistics'))
 async def statistics_cmd(message: Message, session: AsyncSession):
-    result = await list_users(session)
-    for user in result:
-        await message.answer(f"{user.first_name}")
+    table = PrettyTable()
+
+    table.title = 'Amount'
+
+    table.field_names = ['Users', 'Orders', 'Approved']
+
+    users = await list_users(session)
+    orders = await list_carts(session)
+    approved = await get_carts_approved(session)
+
+    table.add_row([f'{len(users)}',
+                   f'{len(orders)}',
+                   f'{len(approved)}'])
+
+    text = f'`{table.get_string()}`'
+
+    await message.answer(text, parse_mode='Markdown')
 
 
 #   See orders
-@admin_router.message(Command('_orders'))
+@admin_router.message(Command('orders'))
 async def orders_cmd(message: Message, session: AsyncSession):
     table = PrettyTable()
 
@@ -123,7 +138,7 @@ async def approve_reject_process_end(message: Message, session: AsyncSession, st
 
 
 #   See orders
-@admin_router.message(Command('_products'))
+@admin_router.message(Command('products'))
 async def products_cmd(message: Message, session: AsyncSession):
     table = PrettyTable()
 
@@ -150,7 +165,7 @@ class ProductsAdd(StatesGroup):
     amount = State()
 
 
-@admin_router.message(Command('_product_add'))
+@admin_router.message(Command('product_add'))
 async def products_cmd(message: Message, state: FSMContext):
     await state.set_state(ProductsAdd.title)
     await message.answer("Enter a product title")
@@ -194,11 +209,6 @@ async def add_to_database(message: Message, data: Dict[str, Any], session):
     await message.answer(text=answer)
 
 
-# TODO: indexing
-# TODO: statistics (amount of users, orders)
-# TODO: list approved orders
-
-
 class Delete(StatesGroup):
     product_id = State()
 
@@ -229,7 +239,7 @@ class Edit(StatesGroup):
 
 
 @admin_router.message(F.text == "Edit Product")
-async def edit_process(message: Message, session: AsyncSession, state: FSMContext):
+async def edit_process(message: Message, state: FSMContext):
     await state.set_state(Edit.product_id)
     await message.answer('Please, enter a number #', reply_markup=ReplyKeyboardRemove())
 

@@ -17,4 +17,4 @@ async def admin_cmd(message: Message, bot: Bot):
 
     bot.admins_list = admins
 
-    await message.answer(f"Admins were updated.")
+    await message.answer(f"Admins were updated. Enter /admin_set in the chat @makeOrder_bot.")

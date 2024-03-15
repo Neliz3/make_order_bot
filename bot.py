@@ -17,13 +17,13 @@ dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
 bot.admins_list = []
 
-
 async def register_routers():
     dp.include_routers(chat.chat_router, admin.admin_router, callbacks.callback_router, user.user_router)
 
 
 async def on_startup():
     await register_routers()
+    bot.admins_list = []
 
     # await drop_db()
     await create_db()
@@ -47,6 +47,8 @@ if __name__ == "__main__":
     logging.getLogger("aiogram").setLevel(logging.INFO)
     logging.getLogger("sqlalchemy").setLevel(logging.INFO)
     #   TODO: levels don't work
+
+    # TODO: indexing
 
     asyncio.run(main())
 

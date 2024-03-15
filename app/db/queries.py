@@ -27,8 +27,10 @@ async def get_user(session: AsyncSession, id_):
 
 
 #   Update User
-async def update_user(session: AsyncSession, id_, address, phone):
-    query = update(Users).where(Users.id == id_).values(address=address).values(phone=phone)
+async def update_user(session: AsyncSession, id_, first_name, last_name, address, phone):
+    query = (update(Users).where(Users.tg_id == id_).
+             values(first_name=first_name).values(last_name=last_name).
+             values(address=address).values(phone=phone))
     await session.execute(query)
     await session.commit()
 
@@ -101,6 +103,13 @@ async def list_carts(session: AsyncSession):
 #   Get particular Carts
 async def get_carts_by_user(session: AsyncSession, id_user):
     query = select(Carts).where(Carts.id_user == id_user)
+    result = await session.execute(query)
+    return result.scalars().all()
+
+
+#   Get approved Carts
+async def get_carts_approved(session: AsyncSession):
+    query = select(Carts).where(Carts.approval == True)
     result = await session.execute(query)
     return result.scalars().all()
 

@@ -15,7 +15,8 @@ from app.keyboards import commands
 from app.keyboards.keyboard import (keyboard_choose_product as kb, keyboard_edit_del,
                                     keyboard_choose_amount as amount_key,
                                     QueryCallback)
-from app.db.queries import add_user, list_products, get_carts_by_user, get_product, delete_cart, update_cart, get_cart
+from app.db.queries import (add_user, list_products, get_carts_by_user, get_product,
+                            delete_cart, update_cart, get_cart, update_user)
 
 from app.handlers.callbacks import callback_router
 from app.filters import chat
@@ -78,16 +79,24 @@ async def add_to_database(message: Message, data: Dict[str, Any], session):
     address = data["address"]
     phone = data["phone"]
 
-    await add_user(session,
-                   tg_id=message.from_user.id,
-                   first_name=first_name,
-                   last_name=last_name,
-                   address=address,
-                   phone=phone)
+    try:
+        await update_user(session,
+                          id_=message.from_user.id,
+                          first_name=first_name,
+                          last_name=last_name,
+                          address=address,
+                          phone=phone)
+    except ():
+        await add_user(session,
+                       tg_id=message.from_user.id,
+                       first_name=first_name,
+                       last_name=last_name,
+                       address=address,
+                       phone=phone)
 
-    answer = first_name + last_name + phone + address + "was added"
+    answer = f'Name: {first_name} {last_name}\nPhone: {phone}\nAddress: {address} was added.'
     await message.answer(text=answer)
-
+    await message.answer('If you want to edit information, click /start again.')
 
 """     See products, Add to cart, Choose amount      """
 
