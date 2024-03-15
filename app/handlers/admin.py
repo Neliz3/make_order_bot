@@ -1,4 +1,4 @@
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, BotCommandScopeAllPrivateChats
 from aiogram.filters import Command
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
@@ -11,7 +11,7 @@ from prettytable import PrettyTable
 
 from typing import Dict, Any
 
-from app.filters import admin
+from app.filters import admin, chat
 from app.keyboards.keyboard import keyboard_approve, keyboard_edit_del_product
 from app.keyboards import commands
 
@@ -20,13 +20,12 @@ from app.db.queries import (list_users,
                             update_cart, delete_cart, delete_product, update_product)
 
 admin_router = Router()
-admin_router.message.filter(admin.IsAdmin())
+admin_router.message.filter((admin.IsAdmin()) and (chat.ChatFilter()))
 
 
 @admin_router.message(Command('admin_set'))
 async def admin_cmd(message: Message, bot: Bot):
-    # await bot.delete_my_commands()
-    await bot.set_my_commands(commands.admin_commands)
+    await bot.set_my_commands(commands.admin_commands, scope=BotCommandScopeAllPrivateChats())
 
     await message.answer(f"Admin mode was set up.")
 
@@ -69,12 +68,12 @@ async def orders_cmd(message: Message, session: AsyncSession):
 
 
 @admin_router.message(F.text == "Approve All")
-async def approve_all_process(message: Message, session: AsyncSession):
+async def approve_all_process(message: Message, session: AsyncSession, bot: Bot):
     carts = await list_carts(session=session)
     for cart in carts:
         await update_cart(session, cart.id, cart.amount, True)
         text = f'Your order {cart.id} was approved successfully!'
-        await bot.bot.send_message(cart.id_user, text=text)
+        await bot.send_message(cart.id_user, text=text)
 
     await message.answer('All orders were approved. /orders_', reply_markup=ReplyKeyboardRemove())
 
@@ -94,7 +93,8 @@ async def approve_reject_process(message: Message, session: AsyncSession, state:
 
 
 @admin_router.message(Approval.cart_id)
-async def approve_reject_process_end(message: Message, session: AsyncSession, state: FSMContext):
+async def approve_reject_process_end(message: Message, session: AsyncSession, state: FSMContext,
+                                     bot: Bot):
     await state.update_data(cart_id=message.text)
 
     data = await state.get_data()
@@ -108,14 +108,14 @@ async def approve_reject_process_end(message: Message, session: AsyncSession, st
     if action == 'Approve':
         await update_cart(session, cart_id, cart.amount, True)
         text = f'Your order {cart.id} was approved successfully!'
-        await bot.bot.send_message(cart.id_user, text=text)
+        await bot.send_message(cart.id_user, text=text)
         await message.answer(f'Order {cart.id} was approved.')
 
     elif action == 'Reject':
         text = (f'Unfortunately, your order {cart_id} was rejected.\n' +
                 hstrikethrough(f'{product.title}, {product.amount}'))
 
-        await bot.bot.send_message(cart.id_user, text=text)
+        await bot.send_message(cart.id_user, text=text)
         await message.answer(f'Order {cart.id} was rejected.')
         await delete_cart(session, cart_id)
 
@@ -194,7 +194,6 @@ async def add_to_database(message: Message, data: Dict[str, Any], session):
     await message.answer(text=answer)
 
 
-# TODO: apply keyboard to admin
 # TODO: indexing
 # TODO: statistics (amount of users, orders)
 # TODO: list approved orders

@@ -1,8 +1,8 @@
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
-from aiogram.types import Message, ReplyKeyboardRemove
+from aiogram.types import Message, ReplyKeyboardRemove, BotCommandScopeAllPrivateChats
 from aiogram.filters import Command
-from aiogram import Router, F
+from aiogram import Router, F, Bot
 from aiogram.filters.callback_data import CallbackQuery
 
 from prettytable import PrettyTable
@@ -11,14 +11,17 @@ from typing import Dict, Any
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from app.keyboards import commands
 from app.keyboards.keyboard import (keyboard_choose_product as kb, keyboard_edit_del,
                                     keyboard_choose_amount as amount_key,
                                     QueryCallback)
 from app.db.queries import add_user, list_products, get_carts_by_user, get_product, delete_cart, update_cart, get_cart
 
 from app.handlers.callbacks import callback_router
+from app.filters import chat
 
 user_router = Router()
+user_router.message.filter(chat.ChatFilter())
 
 """     Registration, Send the instruction      """
 
@@ -31,7 +34,9 @@ class Registration(StatesGroup):
 
 
 @user_router.message(Command('start'))
-async def start_command(message: Message, state: FSMContext):
+async def start_command(message: Message, state: FSMContext, bot: Bot):
+    await bot.set_my_commands(commands.commands, scope=BotCommandScopeAllPrivateChats())
+
     await state.set_state(Registration.first_name)
     await message.answer(f"Hi! What's your first name?")
 

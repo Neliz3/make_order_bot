@@ -4,12 +4,9 @@ import sys
 
 from aiogram import Bot, Dispatcher
 from aiogram.enums import ParseMode
-from aiogram.types import BotCommandScopeAllPrivateChats
-
 
 from app.handlers import admin, user, callbacks, chat
-from app.keyboards import commands
-from app.db.engine import create_db, drop_db, engine, session_maker
+from app.db.engine import create_db, drop_db
 
 from app.middlewares import db
 
@@ -18,6 +15,7 @@ from conf import TOKEN
 
 dp = Dispatcher()
 bot = Bot(TOKEN, parse_mode=ParseMode.HTML)
+bot.admins_list = []
 
 
 async def register_routers():
@@ -26,16 +24,13 @@ async def register_routers():
 
 async def on_startup():
     await register_routers()
-    await bot.set_my_commands(commands.commands, scope=BotCommandScopeAllPrivateChats())
 
-    bot.admins_list = []
     # await drop_db()
     await create_db()
 
 
 async def on_shutdown():
-    #   message to admin about shutdown of a bot
-    pass
+    logging.critical("Bot shut down!")
 
 
 async def main():
@@ -55,6 +50,4 @@ if __name__ == "__main__":
 
     asyncio.run(main())
 
-
-#   TODO: admin part
 #   Storage part
