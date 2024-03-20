@@ -21,12 +21,17 @@ from app.db.queries import (list_users,
                             get_carts_approved)
 
 admin_router = Router()
-admin_router.message.filter((admin.IsAdmin()) and (chat.ChatFilter()))
+admin_router.message.filter(admin.IsAdmin(), chat.ChatFilterPrivate())
 
 
-@admin_router.message(Command('admin_set'))
-async def admin_cmd(message: Message, bot: Bot):
-    await bot.set_my_commands(commands.admin_commands, scope=BotCommandScopeAllPrivateChats())
+@admin_router.message(Command('start'))
+async def admin_set(message: Message, bot: Bot):
+    try:
+        await bot.delete_my_commands()
+    except ():
+        pass
+    finally:
+        await bot.set_my_commands(commands.admin_commands, scope=BotCommandScopeAllPrivateChats())
 
     await message.answer(f"Admin mode was set up.")
 
@@ -104,7 +109,9 @@ async def approve_reject_process(message: Message, session: AsyncSession, state:
     await state.update_data(action=message.text)
 
     await state.set_state(Approval.cart_id)
-    await message.answer('Please, enter a number #', parse_mode='Markdown', reply_markup=ReplyKeyboardRemove())
+    await message.answer('Please, enter a number #',
+                         parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardRemove())
 
 
 @admin_router.message(Approval.cart_id)
@@ -216,7 +223,9 @@ class Delete(StatesGroup):
 @admin_router.message(F.text == "Delete Product")
 async def delete_process(message: Message, session: AsyncSession, state: FSMContext):
     await state.set_state(Delete.product_id)
-    await message.answer('Please, enter a number #', parse_mode='Markdown', reply_markup=ReplyKeyboardRemove())
+    await message.answer('Please, enter a number #',
+                         parse_mode='Markdown',
+                         reply_markup=ReplyKeyboardRemove())
 
 
 @admin_router.message(Delete.product_id)
@@ -275,4 +284,4 @@ async def edit_process_price(message: Message, state: FSMContext, session: Async
     price = int(data['price'])
 
     await update_product(session, product_id, title, price, amount)
-    await message.answer(f'Product {product_id} was edited. /_products')
+    await message.answer(f'Product {product_id} was edited. /products')

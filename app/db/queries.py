@@ -84,7 +84,7 @@ async def delete_product(session: AsyncSession, id_):
 """ CRUD For Carts """
 
 
-#   Add Product
+#   Add Cart
 async def add_cart(session: AsyncSession, id_user, id_product, amount, approval):
     session.add(Carts(id_user=id_user,
                       id_product=id_product,
@@ -136,7 +136,7 @@ async def update_cart(session: AsyncSession, id_, amount, approval):
     await session.commit()
 
 
-#   Delete Product
+#   Delete Cart
 async def delete_cart(session: AsyncSession, id_):
     query = delete(Carts).where(Carts.id == id_)
     await session.execute(query)

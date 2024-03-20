@@ -7,7 +7,7 @@ load_dotenv()
 
 #   Bot Settings
 TOKEN = os.getenv("BOT_TOKEN")
-
+description = "Hi! I'm here to make ordering easier!"
 
 #   Connecting db
 DB = os.getenv("DB")
@@ -18,8 +18,3 @@ DB_NAME = os.getenv("DB_NAME")
 PORT = os.getenv("PORT")
 
 url = f'{DB}://{USER}:{PASSWD}@{HOST}:{PORT}/{DB_NAME}'
-
-
-# Admin id
-ADMIN = os.getenv("ADMIN")
-CHAT_ID = os.getenv("CHAT_ID")

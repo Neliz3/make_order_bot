@@ -1,9 +1,12 @@
+from aiogram import Router, F, Bot
 from aiogram.fsm.context import FSMContext
 from aiogram.fsm.state import StatesGroup, State
 from aiogram.types import Message, ReplyKeyboardRemove, BotCommandScopeAllPrivateChats
 from aiogram.filters import Command
-from aiogram import Router, F, Bot
+from aiogram.utils.markdown import link
+from aiogram.utils.formatting import as_numbered_list, as_numbered_section
 from aiogram.filters.callback_data import CallbackQuery
+from aiogram.enums import ParseMode
 
 from prettytable import PrettyTable
 
@@ -14,20 +17,21 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.keyboards import commands
 from app.keyboards.keyboard import (keyboard_choose_product as kb, keyboard_edit_del,
                                     keyboard_choose_amount as amount_key,
-                                    QueryCallback)
+                                    QueryCallback, keyboard_purpose)
 from app.db.queries import (add_user, list_products, get_carts_by_user, get_product,
                             delete_cart, update_cart, get_cart, update_user)
 
 from app.handlers.callbacks import callback_router
-from app.filters import chat
+from app.filters import admin, chat
 
 user_router = Router()
-user_router.message.filter(chat.ChatFilter())
+user_router.message.filter(chat.ChatFilterPrivate(), ~admin.IsAdmin())
 
 """     Registration, Send the instruction      """
 
 
 class Registration(StatesGroup):
+    purpose = State()
     first_name = State()
     last_name = State()
     address = State()
@@ -36,10 +40,37 @@ class Registration(StatesGroup):
 
 @user_router.message(Command('start'))
 async def start_command(message: Message, state: FSMContext, bot: Bot):
+    try:
+        await bot.delete_my_commands(scope=BotCommandScopeAllPrivateChats())
+    except ():
+        pass
+
+    await state.set_state(Registration.purpose)
+    await message.answer(f"Hi! What's your role?", reply_markup=await keyboard_purpose())
+
+
+@user_router.message(Registration.purpose, F.text.casefold() == "business")
+async def business_process(message: Message, state: FSMContext):
+    steps = ('Create a group with administrators.', 'Add @makeOrder_bot to the group.',
+             'Enter /admin to update admin rights.', 'Enjoy!')
+
+    text = f"Here we've prepared some instructions for you!\n\n"\
+           f"{as_numbered_list(as_numbered_section(steps[0],steps[1], steps[2], steps[3])).as_html()}"
+
+    await state.clear()
+    await message.answer("Great!", reply_markup=ReplyKeyboardRemove())
+    await message.answer(text)
+    await message.answer(f"If you have any question, "
+                         f"feel free to ask {link('creator', 'https://github.com/Neliz3')}.",
+                         parse_mode=ParseMode.MARKDOWN)
+
+
+@user_router.message(Registration.purpose, F.text.casefold() == "customer")
+async def registration_process(message: Message, state: FSMContext, bot: Bot):
     await bot.set_my_commands(commands.commands, scope=BotCommandScopeAllPrivateChats())
 
     await state.set_state(Registration.first_name)
-    await message.answer(f"Hi! What's your first name?")
+    await message.answer(f"Hi! What's your first name?", reply_markup=ReplyKeyboardRemove())
 
 
 @user_router.message(Registration.first_name)

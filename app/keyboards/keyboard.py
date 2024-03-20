@@ -91,3 +91,14 @@ async def keyboard_edit_del_product():
     builder.adjust().as_markup().resize_keyboard = True
 
     return builder.adjust(2).as_markup()
+
+
+async def keyboard_purpose():
+    builder = ReplyKeyboardBuilder()
+
+    builder.add(KeyboardButton(text='Business'),
+                KeyboardButton(text='Customer'))
+
+    builder.adjust().as_markup().resize_keyboard = True
+
+    return builder.adjust(2).as_markup()
